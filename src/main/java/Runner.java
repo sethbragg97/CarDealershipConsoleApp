@@ -29,6 +29,8 @@ public class Runner {
         System.out.println("Please enter your email");
         String email = scanner.nextLine();
 
+        User user = new User(firstName, lastName, email);
+
         String bookAnother;
         do {
             System.out.println("Enter car brand");
@@ -36,32 +38,35 @@ public class Runner {
             List<Car> searchResults = carSearch(brandSearch, listOfAvailableCars);
 
             System.out.println("Did you want to filter your search results?(Y/N)");
-            String decisionOnFilter = scanner.nextLine();
+            String decisionOnFilter = checkInput(Arrays.asList("y","n"));
 
             if(decisionOnFilter.equalsIgnoreCase("y")){
                 System.out.println("Enter field to sort by, select from: Brand, Year, Mileage or Price");
-                String filter = scanner.nextLine();
-                List<Car> filteredSearchResults = advancedOptions(filter,searchResults);
+                String filter = checkInput(Arrays.asList("brand","year","mileage","price"));
+
+                System.out.println("Ascending?(True/False)");
+                boolean ascending = Boolean.parseBoolean(checkInput(Arrays.asList("true","false")));
+
+                List<Car> filteredSearchResults = advancedOptions(filter, ascending, searchResults);
                 filteredSearchResults.forEach((car) -> System.out.println(car.getBrand()));
             } else {
                 searchResults.forEach((car) -> System.out.println(car.getBrand()));
             }
 
-            while(true) {
-                Car selectedCar = selectCar(searchResults);
-                System.out.println(selectedCar.getBrand() + " " + selectedCar.getMileage() + "m £" + selectedCar.getPrice() + " " + selectedCar.getYear());
-                System.out.println("Would you like to book the selected car?(Y/N)");
-                String confirmBooking = scanner.nextLine();
-                if(confirmBooking.equalsIgnoreCase("y")) {
-                    bookCar(selectedCar);
-                    break;
-                }
+
+            Car selectedCar = selectCar(searchResults);
+            System.out.println(selectedCar.getBrand() + " " + selectedCar.getMileage() + "m £" + selectedCar.getPrice() + " " + selectedCar.getYear());
+            System.out.println("Would you like to book the selected car?(Y/N)");
+            String confirmBooking = checkInput(Arrays.asList("y","n"));
+            if(confirmBooking.equalsIgnoreCase("y")) {
+                bookCar(selectedCar);
             }
 
             System.out.println("Do you want to book another car?(Y/N)");
-            bookAnother = scanner.nextLine();
+            bookAnother = checkInput(Arrays.asList("y","n"));
         }
         while (bookAnother.equalsIgnoreCase("y"));
+        System.out.println("Goodbye");
     }
 
     public static List<Car> carSearch(String brandSearch, List<Car> listOfAvailableCars){
@@ -109,7 +114,7 @@ public class Runner {
         return null;
     }
 
-    public static List<Car> advancedOptions(String filter, List<Car> searchResults){
+    public static List<Car> advancedOptions(String filter, boolean ascending, List<Car> searchResults){
 
         if(filter.equalsIgnoreCase("Brand")){
             searchResults.sort((car1, car2) -> car1.getBrand().compareTo(car2.getBrand()));
@@ -118,9 +123,26 @@ public class Runner {
         } else if(filter.equalsIgnoreCase("Mileage")){
             searchResults.sort((car1, car2) -> Integer.compare(car1.getMileage(), car2.getMileage()));
         } else if (filter.equalsIgnoreCase("Year")){
-            searchResults.sort((car1, car2) -> Integer.compare(car2.getYear(), car1.getYear()));
+            searchResults.sort((car1, car2) -> Integer.compare(car1.getYear(), car2.getYear()));
+        }
+
+        if(!ascending) {
+            Collections.reverse(searchResults);
         }
 
         return searchResults;
     }
+
+    public static String checkInput(List<String> options) {
+        String input;
+        while(true) {
+            input = scanner.nextLine().toLowerCase();
+            if(options.contains(input)) {
+                return input;
+            } else {
+                System.out.println(options.toString().replaceAll("]","").replaceAll("\\[","") + "?");
+            }
+        }
+    }
 }
+
